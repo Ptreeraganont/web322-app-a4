@@ -117,7 +117,7 @@ app.get('/intlstudents', (_, res) => {
 
 app.get('/programs', (_, res) => {
 	dataService.getPrograms().then((data) => {
-		res.json(data)
+		res.render('programs', { programs: data })
 	}).catch((err) => {
 		res.json({ message: err })
 	})
