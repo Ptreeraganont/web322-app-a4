@@ -73,27 +73,27 @@ app.get('/students', (req, res) => {
 	const { status, program, credential } = req.query
 	if (status !== undefined) {
 		dataService.getStudentsByStatus(status).then((data) => {
-			res.json(data)
+			res.render("students", { students: data })
 		}).catch((err) => {
-			res.json({ message: err })
+			res.render("students", { message: "no results" });
 		})
 	} else if (program !== undefined) {
 		dataService.getStudentsByProgramCode(program).then((data) => {
-			res.json(data)
+			res.render("students", { students: data })
 		}).catch((err) => {
-			res.json({ message: err })
+			res.render("students", { message: "no results" });
 		})
 	} else if (credential !== undefined) {
 		dataService.getStudentsByExpectedCredential(credential).then((data) => {
-			res.json(data)
+			res.render("students", { students: data })
 		}).catch((err) => {
-			res.json({ message: err })
+			res.render("students", { message: "no results" });
 		})
 	} else {
 		dataService.getAllStudents().then((data) => {
-			res.json(data)
+			res.render("students", { students: data })
 		}).catch((err) => {
-			res.json({ message: err })
+			res.render("students", { message: "no results" });
 		})
 	}
 })
