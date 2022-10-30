@@ -84,6 +84,13 @@ const getStudentById = (sid) =>
 		resolve(student)
 	})
 
+const updateStudent = (studentData) =>
+	new Promise((resolve, reject) => {
+		const studentIndex = students.findIndex(o => o.studentID === studentData.studentID)
+		students[studentIndex] = studentData
+		resolve()
+	})
+
 module.exports = {
 	initialize,
 	getAllStudents,
@@ -94,4 +101,5 @@ module.exports = {
 	getStudentsByProgramCode,
 	getStudentsByExpectedCredential,
 	getStudentById,
+	updateStudent,
 }
