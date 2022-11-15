@@ -299,7 +299,7 @@ app.get('/program/:programCode', (_, res) => {
 		})
 })
 
-app.get('/programs/delete/:programCode', (_, res) => {
+app.get('/programs/delete/:programCode', (req, res) => {
 	const { programCode } = req.params
 	dataService
 		.deleteProgramByCode(programCode)
