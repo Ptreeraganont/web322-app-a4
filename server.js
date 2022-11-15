@@ -180,7 +180,7 @@ app.get('/intlstudents', (_, res) => {
 	dataService
 		.getInternationalStudents()
 		.then((data) => {
-			res.json(data)
+			res.render('students', { students: data })
 		})
 		.catch((err) => {
 			res.json({ message: err })
@@ -194,7 +194,7 @@ app.get('/programs', (_, res) => {
 			if (data.length > 0) {
 				res.render('programs', { programs: data })
 			} else {
-				res.json({ message: 'no results' })
+				res.render('programs', { programs: [] })
 			}
 		})
 		.catch((err) => {
