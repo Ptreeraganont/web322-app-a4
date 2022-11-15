@@ -96,7 +96,7 @@
 								<select class="form-control" name="program" id="program">
 									<option value="">Select Program</option>
 									{{#each viewData.programs}}
-									<	option value="{{this.programCode}}" {{#if this.selected}} selected {{/if}} > {{this.programCode}} - {{this.programName}} </>
+									<option value="{{this.programCode}}" {{#if this.selected}} selected {{/if}}> {{this.programCode}} - {{this.programName}} </option>
 									{{/each}}
 								</select>
 							{{else}}
