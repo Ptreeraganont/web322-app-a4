@@ -1,94 +1,194 @@
-const fs = require('fs')
+const Sequelize = require('sequelize')
 
-var students = []
-var programs = []
+/**
+ * @type {Sequelize.Sequelize}
+ */
+var sequelize = new Sequelize(
+	'venbfcaj',
+	'venbfcaj',
+	'SEA9jM4hYAF0JBEOcU81WsmKzInr_PDW',
+	{
+		host: 'peanut.db.elephantsql.com',
+		dialect: 'postgres',
+		port: 5432,
+		dialectOptions: {
+			ssl: { rejectUnauthorized: false },
+		},
+		query: { raw: true },
+	}
+)
+
+sequelize
+	.authenticate()
+	.then(function () {
+		console.log('Connection has been established successfully.')
+	})
+	.catch(function (err) {
+		console.log('Unable to connect to the database:', err)
+	})
+
+const Student = sequelize.define('Student', {
+	studentID: {
+		type: Sequelize.INTEGER,
+		primaryKey: true,
+		autoIncrement: true,
+	},
+	firstName: Sequelize.STRING,
+	lastName: Sequelize.STRING,
+	email: Sequelize.STRING,
+	phone: Sequelize.STRING,
+	addressStreet: Sequelize.STRING,
+	addressCity: Sequelize.STRING,
+	addressState: Sequelize.STRING,
+	addressPostal: Sequelize.STRING,
+	isInternationalStudent: Sequelize.BOOLEAN,
+	expectedCredential: Sequelize.STRING,
+	status: Sequelize.STRING,
+	registrationDate: Sequelize.STRING,
+})
+
+const Program = sequelize.define('Program', {
+	programCode: {
+		type: Sequelize.STRING,
+		primaryKey: true,
+	},
+	programName: Sequelize.STRING,
+})
+
+Program.hasMany(Student, { foreignKey: 'program' })
 
 const initialize = () =>
 	new Promise((resolve, reject) => {
-		try {
-			fs.readFile('./data/students.json', 'utf8', (err, data) => {
-				if (err) throw err;
-				students = JSON.parse(data)
-			});
-
-			fs.readFile('./data/programs.json', 'utf8', (err, data) => {
-				if (err) throw err;
-				programs = JSON.parse(data)
-			});
-		} catch (err) {
-			reject('Unable to read file')
-		}
-
-		resolve()
+		sequelize
+			.sync()
+			.then(() => {
+				resolve()
+			})
+			.catch(() => reject('https://www.f0nt.com/release/th-sarabun-new/'))
 	})
 
 const getAllStudents = () =>
 	new Promise((resolve, reject) => {
-		if (!students || students.length === 0) reject('no results returned')
-		resolve(students)
+		Student.findAll()
+			.then((res) => resolve(res))
+			.catch(() => reject('no results returned'))
 	})
 
 const getInternationalStudents = () =>
 	new Promise((resolve, reject) => {
-		const interStudents = students.filter((s) => s.isInternationalStudent === true)
-		if (!interStudents || interStudents.length === 0) reject('no results returned')
-		resolve(interStudents)
+		Student.findAll({ where: { isInternationalStudent: true } })
+			.then((res) => resolve(res))
+			.catch(() => reject('no results returned'))
 	})
 
 const getPrograms = () =>
 	new Promise((resolve, reject) => {
-		if (!programs || programs.length === 0) reject('no results returned')
-		resolve(programs)
+		Program.findAll()
+			.then((res) => resolve(res))
+			.catch(() => reject('no results returned'))
 	})
 
 const addStudent = (studentData) =>
 	new Promise((resolve, reject) => {
-		if (studentData.isInternationalStudent === undefined) {
-			studentData.isInternationalStudent = false
-		} else {
-			studentData.isInternationalStudent = true
+		studentData.isInternationalStudent = studentData.isInternationalStudent
+			? true
+			: false
+		for (key in studentData) {
+			if (key === '') {
+				studentData[key] = null
+			}
 		}
-
-		const maxStudentId = Math.max(...students.map(o => o.studentID))
-		const newStudentId = (maxStudentId + 1).toString()
-		studentData.studentID = newStudentId
-		students.push(studentData)
-		resolve(students)
+		Student.create(studentData)
+			.then((res) => resolve(res))
+			.catch(() => reject('unable to create student'))
 	})
 
 const getStudentsByStatus = (status) =>
 	new Promise((resolve, reject) => {
-		const studentsByStatus = students.filter(o => o.status === status)
-		if (studentsByStatus.length === 0) reject('no results returned')
-		resolve(studentsByStatus)
+		Student.findAll({ where: { status } })
+			.then((res) => resolve(res))
+			.catch(() => reject('no results returned'))
 	})
 
 const getStudentsByProgramCode = (programCode) =>
 	new Promise((resolve, reject) => {
-		const studentsByProgramCode = students.filter(o => o.program === programCode)
-		if (studentsByProgramCode.length === 0) reject('no results returned')
-		resolve(studentsByProgramCode)
+		Student.findAll({ where: { programCode } })
+			.then((res) => resolve(res))
+			.catch(() => reject('no results returned'))
 	})
 
 const getStudentsByExpectedCredential = (credential) =>
 	new Promise((resolve, reject) => {
-		const studentsByExpectedCredential = students.filter(o => o.expectedCredential === credential)
-		if (studentsByExpectedCredential.length === 0) reject('no results returned')
-		resolve(studentsByExpectedCredential)
+		Student.findAll({ where: { expectedCredential: credential } })
+			.then((res) => resolve(res))
+			.catch(() => reject('no results returned'))
 	})
 
 const getStudentById = (sid) =>
 	new Promise((resolve, reject) => {
-		const student = students.find(o => o.studentID === sid)
-		if (!student) reject('no results returned')
-		resolve(student)
+		Student.findAll({ where: { studentID: sid } })
+			.then((res) => resolve(res[0]))
+			.catch(() => reject('no results returned'))
 	})
 
 const updateStudent = (studentData) =>
 	new Promise((resolve, reject) => {
-		const studentIndex = students.findIndex(o => o.studentID === studentData.studentID)
-		students[studentIndex] = studentData
-		resolve()
+		studentData.isInternationalStudent = studentData.isInternationalStudent
+			? true
+			: false
+		for (key in studentData) {
+			if (key === '') {
+				studentData[key] = null
+			}
+		}
+		Student.update(studentData, { where: { studentID: studentData.studentID } })
+			.then((res) => resolve(res))
+			.catch(() => reject('unable to update student'))
+	})
+
+const addProgram = (programData) =>
+	new Promise((resolve, reject) => {
+		for (key in programData) {
+			if (key === '') {
+				programData[key] = null
+			}
+		}
+		Program.create(programData)
+			.then((res) => resolve(res))
+			.catch(() => reject('unable to create program'))
+	})
+
+const updateProgram = (programData) =>
+	new Promise((resolve, reject) => {
+		for (key in programData) {
+			if (key === '') {
+				programData[key] = null
+			}
+		}
+		Program.update(programData)
+			.then((res) => resolve(res))
+			.catch(() => reject('unable to update program'))
+	})
+
+const getProgramByCode = (pcode) =>
+	new Promise((resolve, reject) => {
+		Program.findAll({ where: { programCode: pcode } })
+			.then((res) => resolve(res[0]))
+			.catch(() => reject('no results returned'))
+	})
+
+const deleteProgramByCode = (pcode) =>
+	new Promise((resolve, reject) => {
+		Program.destroy({ where: { programCode: pcode } })
+			.then(() => resolve('destroyed'))
+			.catch((err) => reject(err))
+	})
+
+const deleteStudentById = (id) =>
+	new Promise((resolve, reject) => {
+		Student.destroy({ where: { studentID: id } })
+			.then(() => resolve('destroyed'))
+			.catch((err) => reject(err))
 	})
 
 module.exports = {
@@ -102,4 +202,9 @@ module.exports = {
 	getStudentsByExpectedCredential,
 	getStudentById,
 	updateStudent,
+	addProgram,
+	updateProgram,
+	getProgramByCode,
+	deleteProgramByCode,
+	deleteStudentById,
 }

@@ -1,10 +1,10 @@
 /*********************************************************************************
- * WEB322 – Assignment 04
+ * WEB322 – Assignment 05
  * I declare that this assignment is my own work in accordance with Seneca Academic Policy. No part
  * of this assignment has been copied manually or electronically from any other source
  * (including 3rd party web sites) or distributed to other students.
  *
- * Name: Pusit Treeraganont Student ID: 146566211 Date: 26/10/2022
+ * Name: Pusit Treeraganont Student ID: 146566211 Date: 15/11/2022
  *
  * Online (Cyclic) Link: https://real-cow-jumpsuit.cyclic.app
  *
@@ -86,7 +86,11 @@ app.get('/students', (req, res) => {
 		dataService
 			.getStudentsByStatus(status)
 			.then((data) => {
-				res.render('students', { students: data })
+				if (data.length > 0) {
+					res.render('students', { students: data })
+				} else {
+					res.render('students', { message: 'no results' })
+				}
 			})
 			.catch(() => {
 				res.render('students', { message: 'no results' })
@@ -95,7 +99,11 @@ app.get('/students', (req, res) => {
 		dataService
 			.getStudentsByProgramCode(program)
 			.then((data) => {
-				res.render('students', { students: data })
+				if (data.length > 0) {
+					res.render('students', { students: data })
+				} else {
+					res.render('students', { message: 'no results' })
+				}
 			})
 			.catch(() => {
 				res.render('students', { message: 'no results' })
@@ -104,7 +112,11 @@ app.get('/students', (req, res) => {
 		dataService
 			.getStudentsByExpectedCredential(credential)
 			.then((data) => {
-				res.render('students', { students: data })
+				if (data.length > 0) {
+					res.render('students', { students: data })
+				} else {
+					res.render('students', { message: 'no results' })
+				}
 			})
 			.catch(() => {
 				res.render('students', { message: 'no results' })
@@ -113,7 +125,11 @@ app.get('/students', (req, res) => {
 		dataService
 			.getAllStudents()
 			.then((data) => {
-				res.render('students', { students: data })
+				if (data.length > 0) {
+					res.render('students', { students: data })
+				} else {
+					res.render('students', { message: 'no results' })
+				}
 			})
 			.catch(() => {
 				res.render('students', { message: 'no results' })
@@ -121,15 +137,42 @@ app.get('/students', (req, res) => {
 	}
 })
 
-app.get('/student/:value', (req, res) => {
-	const { value } = req.params
+app.get('/student/:studentId', (req, res) => {
+	const { studentId } = req.params
+	let viewData = {}
 	dataService
-		.getStudentById(value)
+		.getStudentById(studentId)
 		.then((data) => {
-			res.render('student', { student: data })
+			if (data) {
+				viewData.student = data
+			} else {
+				viewData.student = null
+			}
 		})
 		.catch(() => {
-			res.render('student', { message: 'no results' })
+			viewData.student = null
+		})
+		.then(dataService.getPrograms)
+		.then((data) => {
+			viewData.programs = data
+			for (let i = 0; i < viewData.programs.length; i++) {
+				if (viewData.programs[i].programCode == viewData.student.program) {
+					viewData.programs[i].selected = true
+				}
+			}
+		})
+		.catch(() => {
+			viewData.programs = []
+		})
+		.then(() => {
+			if (viewData.student === null) {
+				res.render('student', { message: 'no results' })
+			} else {
+				res.render('student', { viewData })
+			}
+		})
+		.catch(() => {
+			res.render('student', { message: 'Unable to Show Students' })
 		})
 })
 
@@ -148,7 +191,11 @@ app.get('/programs', (_, res) => {
 	dataService
 		.getPrograms()
 		.then((data) => {
-			res.render('programs', { programs: data })
+			if (data.length > 0) {
+				res.render('programs', { programs: data })
+			} else {
+				res.json({ message: 'no results' })
+			}
 		})
 		.catch((err) => {
 			res.json({ message: err })
@@ -156,7 +203,14 @@ app.get('/programs', (_, res) => {
 })
 
 app.get('/students/add', (_, res) => {
-	res.render('addStudent')
+	dataService
+		.getPrograms()
+		.then((data) => {
+			res.render('addStudent', { programs: data })
+		})
+		.catch(() => {
+			res.render('addStudent', { programs: [] })
+		})
 })
 
 app.post('/students/add', (req, res) => {
@@ -167,6 +221,17 @@ app.post('/students/add', (req, res) => {
 		})
 		.catch((err) => {
 			res.json({ message: err })
+		})
+})
+
+app.get('/students/delete/:studentID', (req, res) => {
+	dataService
+		.deleteStudentById(req.params.studentID)
+		.then(() => {
+			res.redirect('/students')
+		})
+		.catch(() => {
+			res.status(500).send('Unable to Remove Student / Student not found)')
 		})
 })
 
@@ -190,6 +255,64 @@ app.get('/images', (_, res) => {
 		images.push(...items)
 		res.render('images', { images })
 	})
+})
+
+app.get('/programs/add', (_, res) => {
+	res.render('addProgram')
+})
+
+app.post('/programs/add', (req, res) => {
+	dataService
+		.addProgram(req.body)
+		.then(() => {
+			res.redirect('/programs')
+		})
+		.catch((err) => {
+			res.json({ message: err })
+		})
+})
+
+app.post('/programs/update', (req, res) => {
+	dataService
+		.updateProgram(req.body)
+		.then(() => {
+			res.redirect('/programs')
+		})
+		.catch((err) => {
+			res.json({ message: err })
+		})
+})
+
+app.get('/program/:programCode', (_, res) => {
+	const { programCode } = req.params
+	dataService
+		.getProgramByCode(programCode)
+		.then((data) => {
+			if (data) {
+				res.render('program', { program: data })
+			} else {
+				res.status(404).send('Program Not Found')
+			}
+		})
+		.catch(() => {
+			res.status(404).send('Program Not Found')
+		})
+})
+
+app.get('/programs/delete/:programCode', (_, res) => {
+	const { programCode } = req.params
+	dataService
+		.deleteProgramByCode(programCode)
+		.then((data) => {
+			if (data) {
+				res.render('programs', { program: data })
+			} else {
+				res.status(404).send('Unable to Remove Program / Program not found)')
+			}
+		})
+		.catch(() => {
+			res.status(500).send('Unable to Remove Program / Program not found)')
+		})
 })
 
 app.get('*', (_, res) => {

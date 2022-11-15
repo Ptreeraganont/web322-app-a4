@@ -1,6 +1,9 @@
 <div class="row">
 	<div class="col-md-12">
-		<h2>Students</h2>
+		<h2>
+			Students
+			<a href="/students/add" class="btn btn-success pull-right">Add New Student</a>
+		</h2>
 		<hr />
 
 		<div class="table-responsive">
@@ -15,6 +18,7 @@
 						<th>Status</th>
 						<th>Program</th>
 						<th>Registration&nbsp;Date</th>
+						<th></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -39,6 +43,9 @@
 									href="/students?program={{this.program}}"
 								>{{this.program}}</a></td>
 							<td>{{this.registrationDate}}</td>
+							<td>
+								<div class="btn btn-danger"><a href="/students/delete/{{this.studentID}}">remove</a></div>
+							</td>
 						</tr>
 					{{/each}}
 				</tbody>
